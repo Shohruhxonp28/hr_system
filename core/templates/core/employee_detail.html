@@ -1,0 +1,175 @@
+{% extends 'core/base.html' %}
+{% load hrms_tags %}
+{% block page_title %}{{ employee.full_name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Xodim ma'lumotlari</h2>
+    <div class="d-flex gap-2">
+        <a href="{% url 'employee_edit' employee.pk %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Tahrirlash
+        </a>
+        <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Orqaga
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-body text-center p-4">
+                <div style="width:72px;height:72px;border-radius:50%;background:hsl({{ employee.id|add:'100' }},55%,45%);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;margin-bottom:12px;">
+                    {{ employee.first_name|first }}{{ employee.last_name|first }}
+                </div>
+                <h4 style="font-weight:700;margin-bottom:4px;">{{ employee.full_name }}</h4>
+                <p class="text-muted mb-2" style="font-size:13px;">{{ employee.position.name|default:"Lavozim belgilanmagan" }}</p>
+                <span class="status-badge {% if employee.status == 'active' %}badge-present{% elif employee.status == 'inactive' %}badge-absent{% else %}badge-day-off{% endif %}">
+                    {{ employee.get_status_display }}
+                </span>
+                <div class="mt-3" style="font-size:13px;">
+                    <span style="background:#F1F5F9;padding:3px 10px;border-radius:20px;font-family:monospace;">{{ employee.employee_id }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Ma'lumotlar</div>
+            <div class="card-body p-0">
+                <table style="width:100%;font-size:13px;">
+                    {% if employee.phone %}
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#64748B;width:40%;">Telefon</td>
+                        <td style="padding:10px 16px;font-weight:500;">{{ employee.phone }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if employee.email %}
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#64748B;">Email</td>
+                        <td style="padding:10px 16px;font-weight:500;">{{ employee.email }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#64748B;">Bo'lim</td>
+                        <td style="padding:10px 16px;font-weight:500;">{{ employee.department.name|default:"—" }}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#64748B;">Ish jadvali</td>
+                        <td style="padding:10px 16px;font-weight:500;">{{ employee.work_schedule.name|default:"—" }}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#64748B;">Ishga kirgan</td>
+                        <td style="padding:10px 16px;font-weight:500;">{{ employee.hire_date|date:"d.m.Y" }}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:10px 16px;color:#64748B;">Maosh</td>
+                        <td style="padding:10px 16px;font-weight:600;color:#2563EB;">{{ employee.salary|floatformat:0 }} so'm</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats + Attendance -->
+    <div class="col-lg-8">
+        <!-- Month stats -->
+        <div class="row g-3 mb-3">
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="bi bi-check-circle"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ month_present }}</div>
+                        <div class="stat-label">Bu oy keldi</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon red"><i class="bi bi-x-circle"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ month_absent }}</div>
+                        <div class="stat-label">Bu oy kelmadi</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="bi bi-cash"></i></div>
+                    <div class="stat-info">
+                        <div class="stat-value" style="font-size:16px;">{{ employee.salary|floatformat:0 }}</div>
+                        <div class="stat-label">Oylik maosh</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attendance -->
+        <div class="card mb-3">
+            <div class="card-header">So'nggi davomat</div>
+            <div class="card-body p-0">
+                <table class="custom-table" style="font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th>Sana</th>
+                            <th>Kelish</th>
+                            <th>Ketish</th>
+                            <th>Holat</th>
+                            <th>Kechikish</th>
+                            <th>Qo'shimcha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in recent_attendances %}
+                        <tr>
+                            <td>{{ att.date|date:"d.m.Y" }}</td>
+                            <td>{{ att.check_in|time:"H:i"|default:"—" }}</td>
+                            <td>{{ att.check_out|time:"H:i"|default:"—" }}</td>
+                            <td>{% include 'core/includes/status_badge.html' with status=att.status label=att.get_status_display %}</td>
+                            <td>{% if att.late_minutes > 0 %}<span class="status-badge badge-late">{{ att.late_minutes }} daq</span>{% else %}—{% endif %}</td>
+                            <td>{% if att.overtime_minutes > 0 %}<span class="status-badge badge-overtime">{{ att.overtime_minutes }} daq</span>{% else %}—{% endif %}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-3">Davomat ma'lumoti yo'q</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payroll History -->
+        <div class="card">
+            <div class="card-header">Ish haqi tarixi</div>
+            <div class="card-body p-0">
+                <table class="custom-table" style="font-size:13px;">
+                    <thead>
+                        <tr>
+                            <th>Davr</th>
+                            <th>Asosiy maosh</th>
+                            <th>Ayirish</th>
+                            <th>Qo'shimcha</th>
+                            <th>Jami</th>
+                            <th>Holat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pr in recent_payrolls %}
+                        <tr>
+                            <td>{{ pr.month_name }} {{ pr.year }}</td>
+                            <td>{{ pr.base_salary|floatformat:0 }}</td>
+                            <td class="text-danger">-{{ pr.total_deduction|floatformat:0 }}</td>
+                            <td class="text-success">+{{ pr.overtime_pay|floatformat:0 }}</td>
+                            <td><strong>{{ pr.net_salary|floatformat:0 }}</strong></td>
+                            <td>
+                                <span class="status-badge badge-{{ pr.status }}">{{ pr.get_status_display }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-3">Ish haqi ma'lumoti yo'q</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

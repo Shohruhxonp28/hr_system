@@ -1,0 +1,71 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Ish jadvallari{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-calendar-week me-2 text-primary"></i>Ish jadvallari</h2>
+    <a href="{% url 'schedule_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Jadval qo'shish
+    </a>
+</div>
+
+<div class="row g-3">
+    {% for schedule in schedules %}
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div>
+                        <h5 style="font-weight:600;margin-bottom:4px;">{{ schedule.name }}</h5>
+                        <div class="d-flex gap-3 text-muted" style="font-size:13px;">
+                            <span><i class="bi bi-clock me-1"></i>{{ schedule.start_time|time:"H:i" }} — {{ schedule.end_time|time:"H:i" }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-1">
+                        <a href="{% url 'schedule_edit' schedule.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'schedule_delete' schedule.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash3"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Work days -->
+                <div class="d-flex gap-1 flex-wrap mb-3">
+                    {% for wd in schedule.work_days.all %}
+                    <span class="status-badge {% if wd.is_working %}badge-present{% else %}badge-absent{% endif %}"
+                          style="font-size:11px;">
+                        {{ wd.get_day_of_week_display }}
+                    </span>
+                    {% endfor %}
+                </div>
+
+                <div class="row g-2" style="font-size:12px;">
+                    <div class="col-6">
+                        <div style="background:#F8FAFC;border-radius:8px;padding:8px 10px;">
+                            <div class="text-muted">Kechikish chegarasi</div>
+                            <strong>{{ schedule.late_tolerance_minutes }} daqiqa</strong>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div style="background:#F8FAFC;border-radius:8px;padding:8px 10px;">
+                            <div class="text-muted">Qo'shimcha ish chegarasi</div>
+                            <strong>{{ schedule.overtime_threshold_minutes }} daqiqa</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-calendar-x" style="font-size:32px;display:block;margin-bottom:8px;"></i>
+                Ish jadvallari topilmadi. <a href="{% url 'schedule_create' %}">Qo'shish</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

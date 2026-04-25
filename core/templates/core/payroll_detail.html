@@ -1,0 +1,156 @@
+{% extends 'core/base.html' %}
+{% load hrms_tags %}
+{% block page_title %}Ish haqi tafsiloti{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>Ish haqi tafsiloti</h2>
+    <div class="d-flex gap-2">
+        {% if payroll.status != 'paid' %}
+        <a href="{% url 'payroll_mark_paid' payroll.pk %}" class="btn btn-success btn-sm"
+           onclick="return confirm('To\'langan deb belgilansinmi?')">
+            <i class="bi bi-check2-circle me-1"></i>To'landi
+        </a>
+        {% endif %}
+        <a href="{% url 'payroll_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Orqaga
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Employee + Summary -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-body p-4 text-center">
+                <div style="width:64px;height:64px;border-radius:50%;background:hsl({{ payroll.employee.id|add:'100' }},55%,45%);color:white;display:inline-flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;margin-bottom:12px;">
+                    {{ payroll.employee.first_name|first }}{{ payroll.employee.last_name|first }}
+                </div>
+                <h5 style="font-weight:700;">{{ payroll.employee.full_name }}</h5>
+                <p class="text-muted mb-2" style="font-size:13px;">{{ payroll.employee.position.name|default:"—" }}</p>
+                <div class="mb-2">
+                    <span class="status-badge {% if payroll.status == 'paid' %}badge-paid{% elif payroll.status == 'calculated' %}badge-calculated{% else %}badge-draft{% endif %}">
+                        {{ payroll.get_status_display }}
+                    </span>
+                </div>
+                <div style="font-size:13px;color:#64748B;">
+                    <strong>{{ payroll.month_name }} {{ payroll.year }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Salary Breakdown -->
+        <div class="card">
+            <div class="card-header"><i class="bi bi-receipt me-2"></i>Maosh hisobi</div>
+            <div class="card-body p-0">
+                <table style="width:100%;font-size:13px;">
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#64748B;">Asosiy maosh</td>
+                        <td style="padding:10px 16px;text-align:right;font-weight:600;">{{ payroll.base_salary|floatformat:0 }} so'm</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#DC2626;">Kechikish ayirildi</td>
+                        <td style="padding:10px 16px;text-align:right;color:#DC2626;">-{{ payroll.late_deduction|floatformat:0 }}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#DC2626;">Erta ketish ayirildi</td>
+                        <td style="padding:10px 16px;text-align:right;color:#DC2626;">-{{ payroll.early_leave_deduction|floatformat:0 }}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#DC2626;">Kelmagan kunlar</td>
+                        <td style="padding:10px 16px;text-align:right;color:#DC2626;">-{{ payroll.absence_deduction|floatformat:0 }}</td>
+                    </tr>
+                    <tr style="border-bottom:1px solid #F1F5F9;">
+                        <td style="padding:10px 16px;color:#16A34A;">Qo'shimcha ish haqi</td>
+                        <td style="padding:10px 16px;text-align:right;color:#16A34A;">+{{ payroll.overtime_pay|floatformat:0 }}</td>
+                    </tr>
+                    <tr style="background:#F8FAFC;">
+                        <td style="padding:12px 16px;font-weight:700;font-size:14px;">Jami to'lov</td>
+                        <td style="padding:12px 16px;text-align:right;font-weight:700;font-size:16px;color:#2563EB;">{{ payroll.net_salary|floatformat:0 }} so'm</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats + Attendance -->
+    <div class="col-lg-8">
+        <!-- Stats Row -->
+        <div class="row g-2 mb-3">
+            <div class="col-4">
+                <div style="background:#F0FDF4;border-radius:10px;padding:12px 14px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#166534;">{{ payroll.present_days }}</div>
+                    <div style="font-size:11px;color:#166534;">Kelgan kunlar</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div style="background:#FEF9C3;border-radius:10px;padding:12px 14px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#92400E;">{{ payroll.late_count }}</div>
+                    <div style="font-size:11px;color:#92400E;">Kechikishlar</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div style="background:#FEE2E2;border-radius:10px;padding:12px 14px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#991B1B;">{{ payroll.absent_days }}</div>
+                    <div style="font-size:11px;color:#991B1B;">Kelmagan kunlar</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div style="background:#FFF7ED;border-radius:10px;padding:12px 14px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#C2410C;">{{ payroll.early_leave_count }}</div>
+                    <div style="font-size:11px;color:#C2410C;">Erta ketishlar</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div style="background:#E0F2FE;border-radius:10px;padding:12px 14px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#075985;">{{ payroll.overtime_hours|floatformat:1 }}h</div>
+                    <div style="font-size:11px;color:#075985;">Qo'shimcha ish</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div style="background:#F5F3FF;border-radius:10px;padding:12px 14px;text-align:center;">
+                    <div style="font-size:22px;font-weight:700;color:#6D28D9;">{{ payroll.working_days }}</div>
+                    <div style="font-size:11px;color:#6D28D9;">Ish kunlari</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-calendar-check me-2"></i>
+                {{ payroll.month_name }} {{ payroll.year }} — Davomat jadvali
+            </div>
+            <div class="card-body p-0">
+                <table class="custom-table" style="font-size:12.5px;">
+                    <thead>
+                        <tr>
+                            <th>Sana</th>
+                            <th>Kelish</th>
+                            <th>Ketish</th>
+                            <th>Holat</th>
+                            <th>Kechikish</th>
+                            <th>Erta ketish</th>
+                            <th>Qo'shimcha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in attendances %}
+                        <tr>
+                            <td style="white-space:nowrap;">{{ att.date|date:"d.m.Y, D" }}</td>
+                            <td>{{ att.check_in|time:"H:i"|default:"—" }}</td>
+                            <td>{{ att.check_out|time:"H:i"|default:"—" }}</td>
+                            <td>{% include 'core/includes/status_badge.html' with status=att.status label=att.get_status_display %}</td>
+                            <td>{% if att.late_minutes > 0 %}<span class="text-danger">{{ att.late_minutes }} daq</span>{% else %}—{% endif %}</td>
+                            <td>{% if att.early_leave_minutes > 0 %}<span class="text-warning">{{ att.early_leave_minutes }} daq</span>{% else %}—{% endif %}</td>
+                            <td>{% if att.overtime_minutes > 0 %}<span class="text-success">{{ att.overtime_minutes }} daq</span>{% else %}—{% endif %}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted py-3">Davomat ma'lumoti yo'q</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

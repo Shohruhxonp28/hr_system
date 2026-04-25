@@ -1,0 +1,134 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Ommaviy davomat kiritish{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-people me-2 text-primary"></i>Ommaviy davomat kiritish</h2>
+    <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Orqaga
+    </a>
+</div>
+
+<!-- Date Selector -->
+<div class="filter-card mb-3">
+    <form method="get" class="d-flex align-items-end gap-3">
+        <div>
+            <label class="form-label" style="font-size:12px;">Sana tanlang</label>
+            <input type="date" name="date" value="{{ date }}" class="form-control" style="width:180px;">
+        </div>
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-calendar3 me-1"></i>Ko'rsatish
+        </button>
+    </form>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ date }}">
+
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-list-check me-2"></i>Xodimlar ro'yxati — <strong>{{ date }}</strong></span>
+            <div class="d-flex gap-2 align-items-center">
+                <span class="text-muted" style="font-size:12px;">Barcha:</span>
+                <select id="bulk_status" class="form-select form-select-sm" style="width:160px;" onchange="setBulkStatus(this.value)">
+                    <option value="">— tanlash —</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th style="width:40px;"><input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleAll(this)"></th>
+                        <th>Xodim</th>
+                        <th>Bo'lim</th>
+                        <th>Jadval</th>
+                        <th style="width:160px;">Holat</th>
+                        <th style="width:110px;">Kelish</th>
+                        <th style="width:110px;">Ketish</th>
+                        <th>Mavjud</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for emp in employees %}
+                    <tr {% if emp.id in existing %}style="background:#F0FDF4;"{% endif %}>
+                        <td><input type="checkbox" class="form-check-input row-check" name="selected_{{ emp.id }}" value="{{ emp.id }}"></td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="emp-avatar" style="background:hsl({{ emp.id|add:'100' }},55%,45%);width:28px;height:28px;font-size:11px;">
+                                    {{ emp.first_name|first }}{{ emp.last_name|first }}
+                                </div>
+                                <div>
+                                    <div style="font-weight:500;font-size:13px;">{{ emp.last_name }} {{ emp.first_name }}</div>
+                                    <div class="text-muted" style="font-size:11px;">{{ emp.employee_id }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-muted" style="font-size:12px;">{{ emp.department.name|default:"—" }}</td>
+                        <td class="text-muted" style="font-size:12px;">
+                            {% if emp.work_schedule %}
+                            {{ emp.work_schedule.start_time|time:"H:i" }}–{{ emp.work_schedule.end_time|time:"H:i" }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            <select name="status_{{ emp.id }}" class="form-select form-select-sm status-select" style="font-size:12px;">
+                                {% for val, label in status_choices %}
+                                <option value="{{ val }}"
+                                    {% if emp.id in existing and existing|default_if_none:None %}
+                                    {% else %}
+                                    {% if val == 'present' %}selected{% endif %}
+                                    {% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="time" name="check_in_{{ emp.id }}" class="form-control form-control-sm"
+                                   style="font-size:12px;"
+                                   {% if emp.work_schedule %}value="{{ emp.work_schedule.start_time|time:'H:i' }}"{% endif %}>
+                        </td>
+                        <td>
+                            <input type="time" name="check_out_{{ emp.id }}" class="form-control form-control-sm"
+                                   style="font-size:12px;"
+                                   {% if emp.work_schedule %}value="{{ emp.work_schedule.end_time|time:'H:i' }}"{% endif %}>
+                        </td>
+                        <td>
+                            {% if emp.id in existing %}
+                            <span class="status-badge badge-present" style="font-size:11px;">
+                                <i class="bi bi-check2"></i> Kiritilgan
+                            </span>
+                            {% else %}
+                            <span class="text-muted" style="font-size:11px;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="8" class="text-center text-muted py-4">Faol xodimlar topilmadi</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-save me-1"></i>Saqlash
+        </button>
+        <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary px-4">Bekor qilish</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function setBulkStatus(val) {
+    if (!val) return;
+    document.querySelectorAll('.status-select').forEach(sel => sel.value = val);
+}
+function toggleAll(cb) {
+    document.querySelectorAll('.row-check').forEach(c => c.checked = cb.checked);
+}
+</script>
+{% endblock %}

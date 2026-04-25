@@ -1,0 +1,74 @@
+{% extends 'core/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="page-header">
+            <h2>{{ title }}</h2>
+            <a href="{% url 'schedule_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Orqaga
+            </a>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Jadval nomi</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ish boshlanish vaqti</label>
+                            {{ form.start_time }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ish tugash vaqti</label>
+                            {{ form.end_time }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Kechikish chegarasi (daqiqa)</label>
+                            {{ form.late_tolerance_minutes }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Qo'shimcha ish chegarasi (daqiqa)</label>
+                            {{ form.overtime_threshold_minutes }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Tavsif</label>
+                            {{ form.description }}
+                        </div>
+                    </div>
+
+                    <!-- Weekly Work Days -->
+                    <div class="mt-4">
+                        <label class="form-label fw-600">Ish kunlari</label>
+                        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:16px;">
+                            <div class="row g-2">
+                                {% for day_num, day_name, is_working in days %}
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check" style="background:white;border:1px solid #E2E8F0;border-radius:8px;padding:10px 14px;">
+                                        <input class="form-check-input" type="checkbox"
+                                               name="day_{{ day_num }}"
+                                               id="day_{{ day_num }}"
+                                               {% if is_working %}checked{% endif %}>
+                                        <label class="form-check-label" for="day_{{ day_num }}" style="font-size:13px;font-weight:500;">
+                                            {{ day_name }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-check-lg me-1"></i>Saqlash</button>
+                        <a href="{% url 'schedule_list' %}" class="btn btn-outline-secondary px-4">Bekor qilish</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

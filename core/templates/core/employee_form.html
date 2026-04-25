@@ -1,0 +1,125 @@
+{% extends 'core/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2>{{ title }}</h2>
+    <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Orqaga
+    </a>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="row g-3">
+        <!-- Personal Info -->
+        <div class="col-lg-8">
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-person me-2"></i>Shaxsiy ma'lumotlar</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Familiya *</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger" style="font-size:12px;">{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ism *</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger" style="font-size:12px;">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Otasining ismi</label>
+                            {{ form.middle_name }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Jinsi</label>
+                            {{ form.gender }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Tug'ilgan sana</label>
+                            {{ form.birth_date }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Telefon</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Manzil</label>
+                            {{ form.address }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="bi bi-briefcase me-2"></i>Ish ma'lumotlari</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Xodim ID *</label>
+                            {{ form.employee_id }}
+                            {% if form.employee_id.errors %}<div class="text-danger" style="font-size:12px;">{{ form.employee_id.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Bo'lim</label>
+                            {{ form.department }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Lavozim</label>
+                            {{ form.position }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ish jadvali</label>
+                            {{ form.work_schedule }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Ishga qabul sanasi *</label>
+                            {{ form.hire_date }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Holat</label>
+                            {{ form.status }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Salary Info -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-cash me-2"></i>Maosh ma'lumotlari</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Oylik maosh (so'm)</label>
+                        {{ form.salary }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Soatlik stavka (so'm)</label>
+                        {{ form.hourly_rate }}
+                        <div class="text-muted mt-1" style="font-size:11px;">Bo'sh qoldirilsa, oylik maoshdan hisoblanadi</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><i class="bi bi-chat-text me-2"></i>Izoh</div>
+                <div class="card-body">
+                    {{ form.notes }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check-lg me-1"></i>Saqlash
+        </button>
+        <a href="{% url 'employee_list' %}" class="btn btn-outline-secondary px-4">Bekor qilish</a>
+    </div>
+</form>
+{% endblock %}

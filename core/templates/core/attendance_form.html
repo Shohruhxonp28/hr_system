@@ -1,0 +1,54 @@
+{% extends 'core/base.html' %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="page-header">
+            <h2>{{ title }}</h2>
+            <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Orqaga
+            </a>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Xodim *</label>
+                            {{ form.employee }}
+                            {% if form.employee.errors %}<div class="text-danger" style="font-size:12px;">{{ form.employee.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Sana *</label>
+                            {{ form.date }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Kelish vaqti</label>
+                            {{ form.check_in }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Ketish vaqti</label>
+                            {{ form.check_out }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Holat *</label>
+                            {{ form.status }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Izoh</label>
+                            {{ form.notes }}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i>Saqlash
+                        </button>
+                        <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary px-4">Bekor qilish</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

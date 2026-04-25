@@ -1,0 +1,58 @@
+{% extends 'core/base.html' %}
+{% block page_title %}Lavozimlar{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-briefcase me-2 text-primary"></i>Lavozimlar</h2>
+    <a href="{% url 'position_create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>Lavozim qo'shish
+    </a>
+</div>
+
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Lavozim nomi</th>
+                <th>Bo'lim</th>
+                <th>Asosiy maosh</th>
+                <th class="text-center">Xodimlar</th>
+                <th class="text-center">Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pos in positions %}
+            <tr>
+                <td class="text-muted">{{ forloop.counter }}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:32px;height:32px;background:#F0FDF4;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                            <i class="bi bi-briefcase" style="font-size:14px;color:#16A34A;"></i>
+                        </div>
+                        <strong>{{ pos.name }}</strong>
+                    </div>
+                </td>
+                <td class="text-muted">{{ pos.department.name|default:"—" }}</td>
+                <td><strong>{{ pos.base_salary|floatformat:0 }}</strong> <span class="text-muted">so'm</span></td>
+                <td class="text-center">
+                    <span class="status-badge badge-present">{{ pos.emp_count }} kishi</span>
+                </td>
+                <td class="text-center">
+                    <a href="{% url 'position_edit' pos.pk %}" class="btn btn-sm btn-outline-secondary me-1">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'position_delete' pos.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash3"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                Lavozimlar topilmadi. <a href="{% url 'position_create' %}">Qo'shish</a>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

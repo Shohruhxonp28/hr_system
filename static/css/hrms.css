@@ -1,0 +1,164 @@
+/* ============================================
+   HRMS — Extra styles & utilities
+   ============================================ */
+
+/* ---- Smooth transitions everywhere ---- */
+*, *::before, *::after {
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-duration: 0.12s;
+    transition-timing-function: ease;
+}
+
+/* ---- Typography helpers ---- */
+.fw-600  { font-weight: 600 !important; }
+.fw-700  { font-weight: 700 !important; }
+.fs-11   { font-size: 11px !important; }
+.fs-12   { font-size: 12px !important; }
+.fs-13   { font-size: 13px !important; }
+.text-blue { color: #2563EB !important; }
+
+/* ---- Number display (monospace amounts) ---- */
+.amount {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.2px;
+}
+.amount-positive { color: #16A34A; font-weight: 600; }
+.amount-negative { color: #DC2626; font-weight: 600; }
+
+/* ---- Sidebar scrollbar hide on Firefox ---- */
+.sidebar-nav { scrollbar-width: thin; scrollbar-color: #1E293B transparent; }
+
+/* ---- Card hover lift ---- */
+.card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+    cursor: pointer;
+}
+.card-hover:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.10) !important;
+}
+
+/* ---- Table action buttons cluster ---- */
+.action-btns { display: inline-flex; gap: 4px; }
+.action-btns .btn { padding: 4px 8px; line-height: 1.3; }
+
+/* ---- Empty state ---- */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px;
+    color: #94A3B8;
+}
+.empty-state i  { font-size: 36px; margin-bottom: 12px; }
+.empty-state p  { font-size: 13px; margin: 0; }
+
+/* ---- Page transitions ---- */
+.page-content { animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---- Topbar date badge pulse on load ---- */
+.date-badge { animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+
+/* ---- Stat card number counter animation ---- */
+.stat-value { animation: countUp 0.4s ease; }
+@keyframes countUp { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* ---- Custom scrollbar for tables ---- */
+.table-wrapper { overflow-x: auto; }
+.table-wrapper::-webkit-scrollbar { height: 5px; }
+.table-wrapper::-webkit-scrollbar-track { background: #F8FAFC; }
+.table-wrapper::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 3px; }
+
+/* ---- Status dot ---- */
+.status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+    flex-shrink: 0;
+}
+.dot-green  { background: #16A34A; box-shadow: 0 0 0 2px #DCFCE7; }
+.dot-yellow { background: #D97706; box-shadow: 0 0 0 2px #FEF9C3; }
+.dot-red    { background: #DC2626; box-shadow: 0 0 0 2px #FEE2E2; }
+.dot-blue   { background: #2563EB; box-shadow: 0 0 0 2px #EFF6FF; }
+.dot-gray   { background: #94A3B8; box-shadow: 0 0 0 2px #F1F5F9; }
+
+/* ---- Progress bar ---- */
+.progress-slim { height: 5px; border-radius: 3px; background: #E2E8F0; }
+.progress-slim .progress-bar { border-radius: 3px; }
+
+/* ---- Modal polish ---- */
+.modal-content { border-radius: 16px !important; border: none !important; }
+.modal-header  { border-radius: 16px 16px 0 0 !important; }
+.modal-footer  { border-radius: 0 0 16px 16px !important; }
+
+/* ---- Alert auto-dismiss ---- */
+.alert { position: relative; }
+
+/* ---- Responsive table labels (mobile) ---- */
+@media (max-width: 576px) {
+    .custom-table thead { display: none; }
+    .custom-table tbody tr {
+        display: block;
+        border: 1px solid #E2E8F0;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+    .custom-table td {
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 8px;
+        border: none;
+        font-size: 13px;
+    }
+    .custom-table td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #64748B;
+        flex-shrink: 0;
+        margin-right: 8px;
+    }
+}
+
+/* ---- Form focus ring ---- */
+.form-control:focus,
+.form-select:focus {
+    outline: none;
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
+}
+
+/* ---- Payroll status colors ---- */
+.payroll-paid       { color: #065F46; background: #D1FAE5; }
+.payroll-calculated { color: #15803D; background: #DCFCE7; }
+.payroll-draft      { color: #475569; background: #F1F5F9; }
+
+/* ---- Chart container ---- */
+.chart-container {
+    position: relative;
+    min-height: 200px;
+}
+
+/* ---- Skeleton loader (for future use) ---- */
+.skeleton {
+    background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 6px;
+}
+@keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* ---- Print styles ---- */
+@media print {
+    .sidebar, .topbar, .page-header .btn,
+    .filter-card, .action-btns { display: none !important; }
+    .main-content { margin-left: 0 !important; }
+    .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+}

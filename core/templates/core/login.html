@@ -1,0 +1,65 @@
+{% extends 'core/base.html' %}
+
+{% block auth_content %}
+<div style="min-height: 100vh; background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 100%); display: flex; align-items: center; justify-content: center;">
+    <div style="width: 100%; max-width: 400px; padding: 20px;">
+        <!-- Logo -->
+        <div class="text-center mb-4">
+            <div style="width: 64px; height: 64px; background: #2563EB; border-radius: 16px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                <i class="bi bi-people-fill text-white" style="font-size: 28px;"></i>
+            </div>
+            <h1 style="color: white; font-size: 24px; font-weight: 700; margin: 0;">HRMS</h1>
+            <p style="color: #94A3B8; font-size: 13px; margin-top: 4px;">Kadrlar va ish haqi boshqaruvi</p>
+        </div>
+
+        <!-- Login Card -->
+        <div style="background: white; border-radius: 16px; padding: 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <h2 style="font-size: 18px; font-weight: 600; color: #0F172A; margin-bottom: 6px;">Tizimga kirish</h2>
+            <p style="font-size: 13px; color: #64748B; margin-bottom: 24px;">Foydalanuvchi ma'lumotlarini kiriting</p>
+
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                Login yoki parol noto'g'ri. Qayta urinib ko'ring.
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Foydalanuvchi nomi</label>
+                    <div style="position: relative;">
+                        <i class="bi bi-person" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94A3B8;"></i>
+                        <input type="text" name="username" class="form-control"
+                               style="padding-left: 36px; height: 42px;"
+                               placeholder="admin" required autofocus>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="form-label">Parol</label>
+                    <div style="position: relative;">
+                        <i class="bi bi-lock" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94A3B8;"></i>
+                        <input type="password" name="password" class="form-control"
+                               style="padding-left: 36px; height: 42px;"
+                               placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" style="height: 42px; font-weight: 600; font-size: 14px;">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>Kirish
+                </button>
+            </form>
+
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #E2E8F0; text-align: center;">
+                <p style="font-size: 12px; color: #94A3B8; margin: 0;">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Demo: <strong>admin</strong> / <strong>admin123</strong>
+                </p>
+            </div>
+        </div>
+
+        <p style="text-align: center; color: #475569; font-size: 12px; margin-top: 20px;">
+            © 2024 HRMS — Barcha huquqlar himoyalangan
+        </p>
+    </div>
+</div>
+{% endblock %}

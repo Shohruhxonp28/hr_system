@@ -1,0 +1,234 @@
+{% extends 'core/base.html' %}
+{% load hrms_tags %}
+{% block page_title %}Boshqaruv paneli{% endblock %}
+
+{% block content %}
+<!-- STAT CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_employees }}</div>
+                <div class="stat-label">Jami xodimlar</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-person-check"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ today_present }}</div>
+                <div class="stat-label">Bugun kelganlar</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon yellow"><i class="bi bi-clock-history"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ today_late }}</div>
+                <div class="stat-label">Bugun kechikkanlar</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="bi bi-person-x"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ today_absent }}</div>
+                <div class="stat-label">Bugun kelmaganlar</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon cyan"><i class="bi bi-box-arrow-right"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ today_left }}</div>
+                <div class="stat-label">Bugun chiqib ketganlar</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-6">
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-cash"></i></div>
+            <div class="stat-info">
+                <div class="stat-value" style="font-size: 18px;">{{ monthly_payroll|floatformat:0 }}</div>
+                <div class="stat-label">Bu oydagi ish haqi (so'm)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- ATTENDANCE CHART -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-bar-chart me-2 text-primary"></i>So'nggi 7 kunlik davomat</span>
+                <a href="{% url 'attendance_list' %}" class="btn btn-sm btn-outline-secondary">Barchasi</a>
+            </div>
+            <div class="card-body">
+                <canvas id="attendanceChart" height="80"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK ACTIONS + DEPT STATS -->
+    <div class="col-lg-4">
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-lightning me-2 text-warning"></i>Tezkor harakatlar</div>
+            <div class="card-body p-3">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'bulk_attendance' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-check2-all me-1"></i> Bugungi davomatni kiritish
+                    </a>
+                    <a href="{% url 'attendance_create' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-plus me-1"></i> Davomat qo'shish
+                    </a>
+                    <a href="{% url 'employee_create' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-person-plus me-1"></i> Xodim qo'shish
+                    </a>
+                    <a href="{% url 'reports' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-file-earmark-bar-graph me-1"></i> Hisobotlar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="bi bi-diagram-3 me-2 text-info"></i>Bo'limlar holati</div>
+            <div class="card-body p-0">
+                <table class="custom-table" style="font-size: 12.5px;">
+                    <thead>
+                        <tr>
+                            <th>Bo'lim</th>
+                            <th class="text-center">Jami</th>
+                            <th class="text-center">Kelgan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in dept_stats %}
+                        <tr>
+                            <td>{{ dept.name }}</td>
+                            <td class="text-center">{{ dept.total }}</td>
+                            <td class="text-center">
+                                <span class="status-badge badge-present">{{ dept.present }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-center text-muted py-3">Ma'lumot yo'q</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECENT ATTENDANCE -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-clock me-2 text-primary"></i>Bugungi davomat</span>
+                <span class="text-muted" style="font-size: 12px;">{{ today }}</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="custom-table">
+                    <thead>
+                        <tr>
+                            <th>Xodim</th>
+                            <th>Bo'lim</th>
+                            <th>Lavozim</th>
+                            <th>Kelish</th>
+                            <th>Ketish</th>
+                            <th>Holat</th>
+                            <th>Kechikish</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for att in recent_attendances %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="emp-avatar" style="background: hsl({{ att.employee.id|add:'150' }}, 60%, 45%)">
+                                        {{ att.employee.first_name|first }}{{ att.employee.last_name|first }}
+                                    </div>
+                                    {{ att.employee.full_name }}
+                                </div>
+                            </td>
+                            <td class="text-muted">{{ att.employee.department.name|default:"-" }}</td>
+                            <td class="text-muted">{{ att.employee.position.name|default:"-" }}</td>
+                            <td>{{ att.check_in|time:"H:i"|default:"-" }}</td>
+                            <td>{{ att.check_out|time:"H:i"|default:"-" }}</td>
+                            <td>
+                                {% include 'core/includes/status_badge.html' with status=att.status label=att.get_status_display %}
+                            </td>
+                            <td>
+                                {% if att.late_minutes > 0 %}
+                                <span class="status-badge badge-late">{{ att.late_minutes }} daq.</span>
+                                {% else %}-{% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                                Bugun uchun davomat ma'lumoti yo'q
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ctx = document.getElementById('attendanceChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ chart_labels|safe }},
+        datasets: [
+            {
+                label: 'Keldi',
+                data: {{ chart_present|safe }},
+                backgroundColor: '#DCFCE7',
+                borderColor: '#16A34A',
+                borderWidth: 2,
+                borderRadius: 6,
+            },
+            {
+                label: 'Kelmadi',
+                data: {{ chart_absent|safe }},
+                backgroundColor: '#FEE2E2',
+                borderColor: '#DC2626',
+                borderWidth: 2,
+                borderRadius: 6,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top', labels: { font: { family: 'Inter', size: 12 } } }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#F1F5F9' },
+                ticks: { font: { family: 'Inter', size: 11 } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Inter', size: 11 } }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

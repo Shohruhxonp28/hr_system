@@ -1,0 +1,210 @@
+{% extends 'core/base.html' %}
+{% load hrms_tags %}
+{% block page_title %}Ish haqi{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-cash-stack me-2 text-primary"></i>Ish haqi</h2>
+    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#calcModal">
+        <i class="bi bi-calculator me-1"></i>Hisoblash
+    </button>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-card">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label" style="font-size:12px;">Oy</label>
+            {{ form.month }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" style="font-size:12px;">Yil</label>
+            {{ form.year }}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" style="font-size:12px;">Bo'lim</label>
+            {{ form.department }}
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary btn-sm me-1">
+                <i class="bi bi-funnel me-1"></i>Ko'rsatish
+            </button>
+            <a href="{% url 'payroll_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- TOTALS -->
+{% if totals.total_net %}
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-wallet2"></i></div>
+            <div class="stat-info">
+                <div class="stat-value" style="font-size:18px;">{{ totals.total_base|floatformat:0 }}</div>
+                <div class="stat-label">Jami asosiy maosh</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="bi bi-dash-circle"></i></div>
+            <div class="stat-info">
+                <div class="stat-value" style="font-size:18px;">{{ totals.total_deduction|floatformat:0 }}</div>
+                <div class="stat-label">Jami ayirish</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="bi bi-plus-circle"></i></div>
+            <div class="stat-info">
+                <div class="stat-value" style="font-size:18px;">{{ totals.total_overtime|floatformat:0 }}</div>
+                <div class="stat-label">Qo'shimcha ish haqi</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon purple"><i class="bi bi-cash-coin"></i></div>
+            <div class="stat-info">
+                <div class="stat-value" style="font-size:18px;">{{ totals.total_net|floatformat:0 }}</div>
+                <div class="stat-label">Jami to'lov</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- TABLE -->
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>Xodim</th>
+                <th>Bo'lim</th>
+                <th>Asosiy maosh</th>
+                <th>Kelgan kun</th>
+                <th>Kelmagan</th>
+                <th>Kechikish</th>
+                <th class="text-danger">Ayirish</th>
+                <th class="text-success">Qo'shimcha</th>
+                <th>Jami</th>
+                <th>Holat</th>
+                <th class="text-center">Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pr in payrolls %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="emp-avatar" style="background:hsl({{ pr.employee.id|add:'100' }},55%,45%);">
+                            {{ pr.employee.first_name|first }}{{ pr.employee.last_name|first }}
+                        </div>
+                        <div>
+                            <div style="font-weight:500;">{{ pr.employee.last_name }} {{ pr.employee.first_name }}</div>
+                            <div class="text-muted" style="font-size:11px;">{{ pr.employee.employee_id }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-muted" style="font-size:12px;">{{ pr.employee.department.name|default:"—" }}</td>
+                <td>{{ pr.base_salary|floatformat:0 }}</td>
+                <td class="text-center">
+                    <span class="status-badge badge-present">{{ pr.present_days }}</span>
+                </td>
+                <td class="text-center">
+                    {% if pr.absent_days > 0 %}
+                    <span class="status-badge badge-absent">{{ pr.absent_days }}</span>
+                    {% else %}<span class="text-muted">0</span>{% endif %}
+                </td>
+                <td class="text-center">
+                    {% if pr.late_count > 0 %}
+                    <span class="status-badge badge-late">{{ pr.late_count }}</span>
+                    {% else %}<span class="text-muted">0</span>{% endif %}
+                </td>
+                <td class="text-danger">
+                    {% if pr.total_deduction > 0 %}-{{ pr.total_deduction|floatformat:0 }}{% else %}—{% endif %}
+                </td>
+                <td class="text-success">
+                    {% if pr.overtime_pay > 0 %}+{{ pr.overtime_pay|floatformat:0 }}{% else %}—{% endif %}
+                </td>
+                <td><strong style="color:#2563EB;">{{ pr.net_salary|floatformat:0 }}</strong></td>
+                <td>
+                    <span class="status-badge {% if pr.status == 'paid' %}badge-paid{% elif pr.status == 'calculated' %}badge-calculated{% else %}badge-draft{% endif %}">
+                        {{ pr.get_status_display }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <a href="{% url 'payroll_detail' pr.pk %}" class="btn btn-sm btn-outline-secondary me-1" title="Ko'rish">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    {% if pr.status != 'paid' %}
+                    <a href="{% url 'payroll_mark_paid' pr.pk %}" class="btn btn-sm btn-outline-success" title="To'langan"
+                       onclick="return confirm('Ish haqi to\'langan deb belgilansinmi?')">
+                        <i class="bi bi-check2-circle"></i>
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="11" class="text-center text-muted py-5">
+                <i class="bi bi-cash" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                Ish haqi ma'lumotlari topilmadi.<br>
+                <small>Hisoblash tugmasini bosing</small>
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- CALCULATE MODAL -->
+<div class="modal fade" id="calcModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:16px;border:none;">
+            <div class="modal-header" style="border-bottom:1px solid #E2E8F0;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-calculator me-2 text-primary"></i>Ish haqi hisoblash</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'payroll_calculate' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p class="text-muted mb-3" style="font-size:13px;">
+                        Tanlangan oy uchun barcha faol xodimlar bo'yicha ish haqi hisoblanadi.
+                        Davomat ma'lumotlari asosida kechikish, erta ketish va qo'shimcha ish hisoblanadi.
+                    </p>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Oy *</label>
+                            <select name="month" class="form-select">
+                                {% for num, name in form.fields.month.choices %}
+                                <option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Yil *</label>
+                            <input type="number" name="year" class="form-control" value="{{ year }}" min="2020" max="2030">
+                        </div>
+                    </div>
+                    <div class="mt-3 p-3" style="background:#FFFBEB;border-radius:8px;font-size:12px;">
+                        <i class="bi bi-info-circle text-warning me-1"></i>
+                        <strong>Hisoblash qoidalari:</strong><br>
+                        • Kechikish: har 30 daqiqaga kunlik maoshning 0.5%<br>
+                        • Erta ketish: soatlik stavka bo'yicha<br>
+                        • Kelmagan kun: to'liq kunlik maosh ayiriladi<br>
+                        • Qo'shimcha ish: 1.5x soatlik stavka
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #E2E8F0;">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-calculator me-1"></i>Hisoblash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

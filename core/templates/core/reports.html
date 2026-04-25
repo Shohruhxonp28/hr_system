@@ -1,0 +1,233 @@
+{% extends 'core/base.html' %}
+{% load hrms_tags %}
+{% block page_title %}Hisobotlar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-bar-chart-line me-2 text-primary"></i>Hisobotlar</h2>
+</div>
+
+<!-- Month/Year selector -->
+<div class="filter-card mb-4">
+    <form method="get" class="d-flex align-items-end gap-3 flex-wrap">
+        <div>
+            <label class="form-label" style="font-size:12px;">Oy</label>
+            <select name="month" class="form-select" style="width:140px;font-size:13px;">
+                {% for num, name in months.items %}
+                <option value="{{ num }}" {% if num == month %}selected{% endif %}>{{ name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="form-label" style="font-size:12px;">Yil</label>
+            <input type="number" name="year" class="form-control" value="{{ year }}" style="width:100px;font-size:13px;" min="2020" max="2030">
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-eye me-1"></i>Ko'rsatish
+        </button>
+    </form>
+</div>
+
+<!-- Summary Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="bi bi-people"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ total_employees }}</div>
+                <div class="stat-label">Jami xodimlar</div>
+            </div>
+        </div>
+    </div>
+    {% for dept in by_dept %}
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon cyan"><i class="bi bi-diagram-3"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ dept.emp_count }}</div>
+                <div class="stat-label">{{ dept.name }}</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="row g-3 mb-3">
+    <!-- Attendance by Status Donut -->
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-pie-chart me-2 text-primary"></i>
+                {{ month_name }} {{ year }} — Davomat holatlari
+            </div>
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <div style="position:relative;width:220px;height:220px;">
+                    <canvas id="statusDonut"></canvas>
+                </div>
+                <div class="mt-3 w-100">
+                    {% for label, count in status_data.items %}
+                    {% if count > 0 %}
+                    <div class="d-flex justify-content-between align-items-center mb-1" style="font-size:12.5px;">
+                        <span class="text-muted">{{ label }}</span>
+                        <strong>{{ count }}</strong>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dept Payroll Bar -->
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-header">
+                <i class="bi bi-bar-chart me-2 text-primary"></i>
+                Bo'limlar bo'yicha ish haqi ({{ month_name }} {{ year }})
+            </div>
+            <div class="card-body">
+                {% if has_dept_payroll %}
+                <canvas id="deptPayrollBar" height="120"></canvas>
+                {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-bar-chart" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                    Ma'lumot yo'q
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Payroll Trend -->
+<div class="card">
+    <div class="card-header">
+        <i class="bi bi-graph-up me-2 text-primary"></i>
+        So'nggi 6 oylik ish haqi dinamikasi
+    </div>
+    <div class="card-body">
+        <canvas id="payrollTrend" height="70"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const statusLabels = {{ status_labels|safe }};
+const statusValues = {{ status_values|safe }};
+const statusColors = [
+    '#16A34A','#D97706','#DC2626','#4338CA','#BE185D','#C2410C','#0369A1'
+];
+
+// Filter out zero values
+const filteredLabels = [];
+const filteredValues = [];
+const filteredColors = [];
+statusLabels.forEach((l, i) => {
+    if (statusValues[i] > 0) {
+        filteredLabels.push(l);
+        filteredValues.push(statusValues[i]);
+        filteredColors.push(statusColors[i % statusColors.length]);
+    }
+});
+
+if (filteredValues.length > 0) {
+    new Chart(document.getElementById('statusDonut'), {
+        type: 'doughnut',
+        data: {
+            labels: filteredLabels,
+            datasets: [{
+                data: filteredValues,
+                backgroundColor: filteredColors,
+                borderWidth: 2,
+                borderColor: '#fff',
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            cutout: '65%',
+            plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: {
+                    label: ctx => ` ${ctx.label}: ${ctx.raw} ta`
+                }}
+            }
+        }
+    });
+}
+
+// Dept payroll bar
+{% if has_dept_payroll %}
+const deptNames = {{ dept_payroll|safe }}.map(d => d.name);
+const deptTotals = {{ dept_payroll|safe }}.map(d => d.total);
+new Chart(document.getElementById('deptPayrollBar'), {
+    type: 'bar',
+    data: {
+        labels: deptNames,
+        datasets: [{
+            label: "Ish haqi (so'm)",
+            data: deptTotals,
+            backgroundColor: '#BFDBFE',
+            borderColor: '#2563EB',
+            borderWidth: 2,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#F1F5F9' },
+                ticks: { font: { family: 'Inter', size: 11 } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Inter', size: 11 } }
+            }
+        }
+    }
+});
+{% endif %}
+
+// Payroll trend
+const trendData = {{ payroll_trend|safe }};
+new Chart(document.getElementById('payrollTrend'), {
+    type: 'line',
+    data: {
+        labels: trendData.map(d => d.month),
+        datasets: [{
+            label: "Ish haqi (so'm)",
+            data: trendData.map(d => d.total),
+            borderColor: '#2563EB',
+            backgroundColor: 'rgba(37,99,235,0.08)',
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#2563EB',
+            pointRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: '#F1F5F9' },
+                ticks: { font: { family: 'Inter', size: 11 } }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { font: { family: 'Inter', size: 11 } }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

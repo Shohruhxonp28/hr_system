@@ -1,0 +1,147 @@
+{% extends 'core/base.html' %}
+{% load hrms_tags %}
+{% block page_title %}Davomat{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-check2-square me-2 text-primary"></i>Davomat</h2>
+    <div class="d-flex gap-2">
+        <a href="{% url 'bulk_attendance' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-people me-1"></i>Ommaviy kiritish
+        </a>
+        <a href="{% url 'attendance_create' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Qo'shish
+        </a>
+    </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filter-card">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-2">
+            <label class="form-label" style="font-size:12px;">Dan</label>
+            {{ form.date_from }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" style="font-size:12px;">Gacha</label>
+            {{ form.date_to }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" style="font-size:12px;">Xodim</label>
+            {{ form.employee }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" style="font-size:12px;">Bo'lim</label>
+            {{ form.department }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label" style="font-size:12px;">Holat</label>
+            {{ form.status }}
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm me-1">
+                <i class="bi bi-funnel me-1"></i>Filter
+            </button>
+            <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- STATUS SUMMARY -->
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <div style="background:#DCFCE7;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-person-check" style="color:#16A34A;font-size:18px;"></i>
+            <div>
+                <div style="font-size:18px;font-weight:700;color:#166534;">{{ status_counts.present }}</div>
+                <div style="font-size:11px;color:#166534;">Vaqtida keldi</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div style="background:#FEF9C3;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-clock-history" style="color:#B45309;font-size:18px;"></i>
+            <div>
+                <div style="font-size:18px;font-weight:700;color:#92400E;">{{ status_counts.late }}</div>
+                <div style="font-size:11px;color:#92400E;">Kechikdi</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div style="background:#FEE2E2;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-person-x" style="color:#DC2626;font-size:18px;"></i>
+            <div>
+                <div style="font-size:18px;font-weight:700;color:#991B1B;">{{ status_counts.absent }}</div>
+                <div style="font-size:11px;color:#991B1B;">Kelmadi</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div style="background:#E0F2FE;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;">
+            <i class="bi bi-stars" style="color:#0369A1;font-size:18px;"></i>
+            <div>
+                <div style="font-size:18px;font-weight:700;color:#075985;">{{ status_counts.overtime }}</div>
+                <div style="font-size:11px;color:#075985;">Qo'shimcha ish</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-wrapper">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th>Xodim</th>
+                <th>Sana</th>
+                <th>Bo'lim</th>
+                <th>Kelish</th>
+                <th>Ketish</th>
+                <th>Holat</th>
+                <th>Kechikish</th>
+                <th>Erta ketish</th>
+                <th>Qo'shimcha</th>
+                <th class="text-center">Amallar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for att in attendances %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="emp-avatar" style="background:hsl({{ att.employee.id|add:'100' }},55%,45%);">
+                            {{ att.employee.first_name|first }}{{ att.employee.last_name|first }}
+                        </div>
+                        <a href="{% url 'employee_detail' att.employee.pk %}" style="color:inherit;text-decoration:none;font-weight:500;">
+                            {{ att.employee.last_name }} {{ att.employee.first_name }}
+                        </a>
+                    </div>
+                </td>
+                <td style="white-space:nowrap;">{{ att.date|date:"d.m.Y" }}</td>
+                <td class="text-muted" style="font-size:12px;">{{ att.employee.department.name|default:"—" }}</td>
+                <td>{% if att.check_in %}<span style="font-weight:500;">{{ att.check_in|time:"H:i" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td>{% if att.check_out %}<span style="font-weight:500;">{{ att.check_out|time:"H:i" }}</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td>{% include 'core/includes/status_badge.html' with status=att.status label=att.get_status_display %}</td>
+                <td>{% if att.late_minutes > 0 %}<span class="status-badge badge-late">{{ att.late_minutes }} daq</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td>{% if att.early_leave_minutes > 0 %}<span class="status-badge badge-incomplete">{{ att.early_leave_minutes }} daq</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td>{% if att.overtime_minutes > 0 %}<span class="status-badge badge-overtime">{{ att.overtime_minutes }} daq</span>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                <td class="text-center">
+                    <a href="{% url 'attendance_edit' att.pk %}" class="btn btn-sm btn-outline-secondary me-1">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'attendance_delete' att.pk %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash3"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size:28px;display:block;margin-bottom:8px;"></i>
+                Davomat ma'lumotlari topilmadi
+            </td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
