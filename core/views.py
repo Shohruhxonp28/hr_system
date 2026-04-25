@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
 from django.utils import timezone
@@ -11,6 +11,14 @@ import json
 from .models import Department, Position, WorkSchedule, WeeklyWorkDays, Employee, Attendance, Payroll
 from .forms import (DepartmentForm, PositionForm, WorkScheduleForm, EmployeeForm,
                     AttendanceForm, AttendanceFilterForm, PayrollFilterForm)
+
+
+def staff_required(view_func):
+    """Faqat admin/staff foydalanuvchilar kira oladigan sahifalar uchun decorator."""
+    return user_passes_test(
+        lambda user: user.is_staff or user.is_superuser,
+        login_url='employee_dashboard'
+    )(view_func)
 
 
 def get_today_stats():
@@ -86,12 +94,14 @@ def dashboard(request):
 
 # ========== DEPARTMENTS ==========
 @login_required
+@staff_required
 def department_list(request):
     departments = Department.objects.annotate(emp_count=Count('employees', filter=Q(employees__is_active=True)))
     return render(request, 'core/department_list.html', {'departments': departments})
 
 
 @login_required
+@staff_required
 def department_create(request):
     form = DepartmentForm(request.POST or None)
     if form.is_valid():
@@ -102,6 +112,7 @@ def department_create(request):
 
 
 @login_required
+@staff_required
 def department_edit(request, pk):
     dept = get_object_or_404(Department, pk=pk)
     form = DepartmentForm(request.POST or None, instance=dept)
@@ -113,6 +124,7 @@ def department_edit(request, pk):
 
 
 @login_required
+@staff_required
 def department_delete(request, pk):
     dept = get_object_or_404(Department, pk=pk)
     if request.method == 'POST':
@@ -124,6 +136,7 @@ def department_delete(request, pk):
 
 # ========== POSITIONS ==========
 @login_required
+@staff_required
 def position_list(request):
     positions = Position.objects.select_related('department').annotate(
         emp_count=Count('employees', filter=Q(employees__is_active=True)))
@@ -131,6 +144,7 @@ def position_list(request):
 
 
 @login_required
+@staff_required
 def position_create(request):
     form = PositionForm(request.POST or None)
     if form.is_valid():
@@ -141,6 +155,7 @@ def position_create(request):
 
 
 @login_required
+@staff_required
 def position_edit(request, pk):
     pos = get_object_or_404(Position, pk=pk)
     form = PositionForm(request.POST or None, instance=pos)
@@ -152,6 +167,7 @@ def position_edit(request, pk):
 
 
 @login_required
+@staff_required
 def position_delete(request, pk):
     pos = get_object_or_404(Position, pk=pk)
     if request.method == 'POST':
@@ -163,12 +179,14 @@ def position_delete(request, pk):
 
 # ========== WORK SCHEDULES ==========
 @login_required
+@staff_required
 def schedule_list(request):
     schedules = WorkSchedule.objects.prefetch_related('work_days')
     return render(request, 'core/schedule_list.html', {'schedules': schedules})
 
 
 @login_required
+@staff_required
 def schedule_create(request):
     if request.method == 'POST':
         form_data = request.POST
@@ -195,6 +213,7 @@ def schedule_create(request):
 
 
 @login_required
+@staff_required
 def schedule_edit(request, pk):
     schedule = get_object_or_404(WorkSchedule, pk=pk)
     if request.method == 'POST':
@@ -224,6 +243,7 @@ def schedule_edit(request, pk):
 
 
 @login_required
+@staff_required
 def schedule_delete(request, pk):
     schedule = get_object_or_404(WorkSchedule, pk=pk)
     if request.method == 'POST':
@@ -235,6 +255,7 @@ def schedule_delete(request, pk):
 
 # ========== EMPLOYEES ==========
 @login_required
+@staff_required
 def employee_list(request):
     employees = Employee.objects.select_related('department', 'position').filter(is_active=True)
     dept_filter = request.GET.get('department')
@@ -257,6 +278,7 @@ def employee_list(request):
 
 
 @login_required
+@staff_required
 def employee_detail(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     recent_attendances = employee.attendances.order_by('-date')[:30]
@@ -272,6 +294,7 @@ def employee_detail(request, pk):
 
 
 @login_required
+@staff_required
 def employee_create(request):
     form = EmployeeForm(request.POST or None, request.FILES or None)
     if form.is_valid():
@@ -301,6 +324,7 @@ def employee_create(request):
 
 
 @login_required
+@staff_required
 def employee_edit(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     form = EmployeeForm(request.POST or None, request.FILES or None, instance=employee)
@@ -347,6 +371,7 @@ def employee_edit(request, pk):
 
 
 @login_required
+@staff_required
 def employee_delete(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     if request.method == 'POST':
@@ -359,6 +384,7 @@ def employee_delete(request, pk):
 
 # ========== ATTENDANCE ==========
 @login_required
+@staff_required
 def attendance_list(request):
     form = AttendanceFilterForm(request.GET or None)
     attendances = Attendance.objects.select_related('employee', 'employee__department', 'employee__position')
@@ -392,6 +418,7 @@ def attendance_list(request):
 
 
 @login_required
+@staff_required
 def attendance_create(request):
     form = AttendanceForm(request.POST or None)
     if form.is_valid():
@@ -405,6 +432,7 @@ def attendance_create(request):
 
 
 @login_required
+@staff_required
 def attendance_edit(request, pk):
     attendance = get_object_or_404(Attendance, pk=pk)
     form = AttendanceForm(request.POST or None, instance=attendance)
@@ -418,6 +446,7 @@ def attendance_edit(request, pk):
 
 
 @login_required
+@staff_required
 def attendance_delete(request, pk):
     attendance = get_object_or_404(Attendance, pk=pk)
     if request.method == 'POST':
@@ -428,6 +457,7 @@ def attendance_delete(request, pk):
 
 
 @login_required
+@staff_required
 def bulk_attendance(request):
     """Add attendance for all employees for a specific date."""
     if request.method == 'POST':
@@ -469,6 +499,7 @@ def bulk_attendance(request):
 
 # ========== PAYROLL ==========
 @login_required
+@staff_required
 def payroll_list(request):
     today = date.today()
     form = PayrollFilterForm(request.GET or {'month': today.month, 'year': today.year})
@@ -498,6 +529,7 @@ def payroll_list(request):
 
 
 @login_required
+@staff_required
 def payroll_calculate(request):
     """Calculate payroll for all active employees for a given month/year."""
     today = date.today()
@@ -572,6 +604,7 @@ def payroll_calculate(request):
 
 
 @login_required
+@staff_required
 def payroll_detail(request, pk):
     payroll = get_object_or_404(Payroll, pk=pk)
     attendances = Attendance.objects.filter(
@@ -581,6 +614,7 @@ def payroll_detail(request, pk):
 
 
 @login_required
+@staff_required
 def payroll_mark_paid(request, pk):
     payroll = get_object_or_404(Payroll, pk=pk)
     payroll.status = 'paid'
@@ -591,6 +625,7 @@ def payroll_mark_paid(request, pk):
 
 # ========== REPORTS ==========
 @login_required
+@staff_required
 def reports(request):
     today = date.today()
     month = int(request.GET.get('month', today.month))

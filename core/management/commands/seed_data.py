@@ -118,7 +118,39 @@ class Command(BaseCommand):
         ]
 
         employees = []
+        employee_user_count = 0
         for lname, fname, mname, emp_id, dept, pos, sched, phone, salary in employees_data:
+            # Demo uchun har bir xodimga alohida login yaratiladi.
+            # Masalan: EMP001 -> login: emp001, parol: emp001123
+            username = emp_id.lower()
+            password = f"{username}123"
+
+            user, user_created = User.objects.get_or_create(
+                username=username,
+                defaults={
+                    'first_name': fname,
+                    'last_name': lname,
+                    'email': f"{username}@hrms.local",
+                    'is_staff': False,
+                    'is_superuser': False,
+                }
+            )
+            if user_created:
+                user.set_password(password)
+                user.save()
+                employee_user_count += 1
+            else:
+                # Ism/familiya o'zgargan bo'lsa, yangilab qo'yamiz. Parolni reset qilmaymiz.
+                changed = False
+                if user.first_name != fname:
+                    user.first_name = fname
+                    changed = True
+                if user.last_name != lname:
+                    user.last_name = lname
+                    changed = True
+                if changed:
+                    user.save()
+
             emp, created = Employee.objects.get_or_create(
                 employee_id=emp_id,
                 defaults={
@@ -135,10 +167,18 @@ class Command(BaseCommand):
                     'gender': random.choice(['M', 'F']),
                     'status': 'active',
                     'is_active': True,
+                    'user': user,
                 }
             )
+
+            # Agar xodim oldindan bor bo'lib, user ulanmagan bo'lsa, bog'lab qo'yamiz.
+            if not emp.user:
+                emp.user = user
+                emp.save(update_fields=['user'])
+
             employees.append(emp)
-        self.stdout.write(self.style.SUCCESS(f"✓ {len(employees)} ta xodim yaratildi"))
+        self.stdout.write(self.style.SUCCESS(f"✓ {len(employees)} ta xodim yaratildi/yuklandi"))
+        self.stdout.write(self.style.SUCCESS(f"✓ {employee_user_count} ta xodim loginlari yaratildi"))
 
         # Generate attendance for last 30 days
         today = date.today()
@@ -275,6 +315,8 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("=" * 50))
         self.stdout.write(self.style.SUCCESS("✅ Barcha ma'lumotlar muvaffaqiyatli yuklandi!"))
         self.stdout.write(self.style.SUCCESS("   URL: http://127.0.0.1:8000"))
-        self.stdout.write(self.style.SUCCESS("   Login: admin"))
-        self.stdout.write(self.style.SUCCESS("   Parol: admin123"))
+        self.stdout.write(self.style.SUCCESS("   Admin login: admin"))
+        self.stdout.write(self.style.SUCCESS("   Admin parol: admin123"))
+        self.stdout.write(self.style.SUCCESS("   Xodim demo login: emp001"))
+        self.stdout.write(self.style.SUCCESS("   Xodim demo parol: emp001123"))
         self.stdout.write(self.style.SUCCESS("=" * 50))

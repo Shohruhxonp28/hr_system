@@ -559,8 +559,11 @@
     const days = ['Yakshanba','Dushanba','Seshanba','Chorshanba','Payshanba','Juma','Shanba'];
     const months = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
     const now = new Date();
-    document.getElementById('current-date').textContent =
-        `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}, ${days[now.getDay()]}`;
+    const currentDateEl = document.getElementById('current-date');
+    if (currentDateEl) {
+        currentDateEl.textContent =
+            `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}, ${days[now.getDay()]}`;
+    }
 </script>
 {% block extra_js %}{% endblock %}
 </body>
