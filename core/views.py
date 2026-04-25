@@ -275,8 +275,27 @@ def employee_detail(request, pk):
 def employee_create(request):
     form = EmployeeForm(request.POST or None, request.FILES or None)
     if form.is_valid():
-        form.save()
-        messages.success(request, "Xodim muvaffaqiyatli qo'shildi!")
+        employee = form.save(commit=False)
+
+        # Login ma'lumotlari
+        username = form.cleaned_data.get('username') or employee.employee_id.lower()
+        password = form.cleaned_data.get('password') or (employee.employee_id.lower() + '123')
+
+        from django.contrib.auth.models import User
+        if User.objects.filter(username=username).exists():
+            messages.error(request, f"'{username}' login allaqachon mavjud! Boshqa login kiriting.")
+            return render(request, 'core/employee_form.html', {'form': form, 'title': "Xodim qo'shish"})
+
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            first_name=employee.first_name,
+            last_name=employee.last_name,
+        )
+        employee.user = user
+        employee.save()
+
+        messages.success(request, f"Xodim qo'shildi! Login: {username} | Parol: {password}")
         return redirect('employee_list')
     return render(request, 'core/employee_form.html', {'form': form, 'title': "Xodim qo'shish"})
 
@@ -285,8 +304,43 @@ def employee_create(request):
 def employee_edit(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     form = EmployeeForm(request.POST or None, request.FILES or None, instance=employee)
+
+    # Tahrirlashda username maydonini to'ldirish
+    if request.method == 'GET' and employee.user:
+        form.fields['username'].initial = employee.user.username
+
     if form.is_valid():
-        form.save()
+        emp = form.save(commit=False)
+
+        username = form.cleaned_data.get('username')
+        password = form.cleaned_data.get('password')
+
+        from django.contrib.auth.models import User
+
+        if emp.user:
+            # Mavjud foydalanuvchini yangilash
+            if username and username != emp.user.username:
+                if User.objects.filter(username=username).exclude(pk=emp.user.pk).exists():
+                    messages.error(request, f"'{username}' login allaqachon mavjud!")
+                    return render(request, 'core/employee_form.html', {'form': form, 'title': "Xodimni tahrirlash", 'obj': employee})
+                emp.user.username = username
+            emp.user.first_name = emp.first_name
+            emp.user.last_name = emp.last_name
+            if password:
+                emp.user.set_password(password)
+            emp.user.save()
+        else:
+            # Yangi foydalanuvchi yaratish
+            uname = username or emp.employee_id.lower()
+            pwd = password or (emp.employee_id.lower() + '123')
+            if User.objects.filter(username=uname).exists():
+                messages.error(request, f"'{uname}' login allaqachon mavjud!")
+                return render(request, 'core/employee_form.html', {'form': form, 'title': "Xodimni tahrirlash", 'obj': employee})
+            user = User.objects.create_user(username=uname, password=pwd, first_name=emp.first_name, last_name=emp.last_name)
+            emp.user = user
+            messages.info(request, f"Yangi login yaratildi: {uname} | Parol: {pwd}")
+
+        emp.save()
         messages.success(request, "Xodim muvaffaqiyatli yangilandi!")
         return redirect('employee_list')
     return render(request, 'core/employee_form.html', {'form': form, 'title': "Xodimni tahrirlash", 'obj': employee})

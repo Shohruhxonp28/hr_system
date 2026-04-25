@@ -60,11 +60,24 @@ class WeeklyWorkDayForm(forms.ModelForm):
 
 
 class EmployeeForm(forms.ModelForm):
+    username = forms.CharField(
+        max_length=150, required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Avtomatik: employee_id'}),
+        label='Login (username)',
+        help_text="Bo'sh qoldirilsa, Xodim ID asosida yaratiladi"
+    )
+    password = forms.CharField(
+        max_length=128, required=False,
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Yangi parol'}),
+        label='Parol',
+        help_text="Tahrirlashda bo'sh qoldirilsa, parol o'zgarmaydi"
+    )
+
     class Meta:
         model = Employee
         fields = [
             'first_name', 'last_name', 'middle_name', 'employee_id',
-            'user', 'photo',
+            'photo',
             'department', 'position', 'work_schedule',
             'phone', 'email', 'gender', 'hire_date', 'birth_date',
             'salary', 'hourly_rate', 'status', 'address', 'notes'
@@ -87,7 +100,6 @@ class EmployeeForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
-            'user': forms.Select(attrs={'class': 'form-select'}),
             'photo': forms.FileInput(attrs={'class': 'form-control'}),
         }
         labels = {
@@ -97,7 +109,7 @@ class EmployeeForm(forms.ModelForm):
             'gender': 'Jinsi', 'hire_date': 'Ishga qabul sanasi', 'birth_date': "Tug'ilgan sana",
             'salary': 'Maosh (so\'m)', 'hourly_rate': 'Soatlik stavka',
             'status': 'Holat', 'address': 'Manzil', 'notes': 'Izoh',
-            'user': 'Foydalanuvchi (Tizimga kirish uchun)', 'photo': 'Rasm (Face ID uchun)'
+            'photo': 'Rasm (Face ID uchun)'
         }
 
 

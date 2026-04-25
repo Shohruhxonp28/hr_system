@@ -107,15 +107,32 @@
             </div>
 
             <div class="card mb-3">
-                <div class="card-header"><i class="bi bi-person-bounding-box me-2"></i>Tizim va Face ID</div>
+                <div class="card-header"><i class="bi bi-key me-2"></i>Tizimga kirish (Login / Parol)</div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <label class="form-label">Tizimga kirish uchun foydalanuvchi</label>
-                        {{ form.user }}
-                        <div class="text-muted mt-1" style="font-size:11px;">Agar xodim tizimga kirishi kerak bo'lsa, foydalanuvchini tanlang</div>
+                        <label class="form-label">Login (username)</label>
+                        {{ form.username }}
+                        <div class="text-muted mt-1" style="font-size:11px;">Bo'sh qoldirilsa, Xodim ID asosida yaratiladi</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Face ID uchun rasm</label>
+                        <label class="form-label">Parol</label>
+                        {{ form.password }}
+                        <div class="text-muted mt-1" style="font-size:11px;">{% if obj %}Bo'sh qoldirilsa, parol o'zgarmaydi{% else %}Bo'sh qoldirilsa, xodim_id + "123" bo'ladi{% endif %}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-person-bounding-box me-2"></i>Face ID uchun rasm</div>
+                <div class="card-body">
+                    {% if obj and obj.photo %}
+                    <div class="mb-3 text-center">
+                        <img src="{{ obj.photo.url }}" class="rounded-circle border border-2 border-primary" style="width: 80px; height: 80px; object-fit: cover;">
+                        <div class="small text-muted mt-1">Joriy rasm</div>
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label">Yangi rasm yuklash</label>
                         {{ form.photo }}
                     </div>
                 </div>
