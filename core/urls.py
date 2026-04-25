@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import employee_views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -44,4 +45,15 @@ urlpatterns = [
 
     # Reports
     path('reports/', views.reports, name='reports'),
+
+    # Employee Panel
+    path('panel/dashboard/', employee_views.employee_dashboard, name='employee_dashboard'),
+    path('panel/attendance/', employee_views.employee_attendance, name='employee_attendance'),
+    path('panel/calendar/', employee_views.employee_calendar, name='employee_calendar'),
+    path('panel/salary/', employee_views.employee_salary, name='employee_salary'),
+    path('panel/profile/', employee_views.employee_profile, name='employee_profile'),
+    path('panel/face-id/', employee_views.face_id_scan, name='face_id_scan'),
+    path('panel/api/face-check/', employee_views.api_face_check, name='api_face_check'),
+    path('panel/upload-photo/', employee_views.employee_upload_photo, name='employee_upload_photo'),
+    path('panel/api/capture-photo/', employee_views.employee_capture_photo, name='employee_capture_photo'),
 ]

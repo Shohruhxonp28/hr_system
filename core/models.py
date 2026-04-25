@@ -100,6 +100,8 @@ class Employee(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     address = models.TextField(blank=True, verbose_name="Manzil")
     notes = models.TextField(blank=True, verbose_name="Izoh")
+    user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='employee_profile', verbose_name="Foydalanuvchi")
+    photo = models.ImageField(upload_to='employee_photos/', null=True, blank=True, verbose_name="Rasm (Face ID uchun)")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -40,6 +40,9 @@ def get_today_stats():
 
 @login_required
 def dashboard(request):
+    if not request.user.is_staff and not request.user.is_superuser:
+        return redirect('employee_dashboard')
+
     stats = get_today_stats()
     today = date.today()
 
@@ -270,7 +273,7 @@ def employee_detail(request, pk):
 
 @login_required
 def employee_create(request):
-    form = EmployeeForm(request.POST or None)
+    form = EmployeeForm(request.POST or None, request.FILES or None)
     if form.is_valid():
         form.save()
         messages.success(request, "Xodim muvaffaqiyatli qo'shildi!")
@@ -281,7 +284,7 @@ def employee_create(request):
 @login_required
 def employee_edit(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
-    form = EmployeeForm(request.POST or None, instance=employee)
+    form = EmployeeForm(request.POST or None, request.FILES or None, instance=employee)
     if form.is_valid():
         form.save()
         messages.success(request, "Xodim muvaffaqiyatli yangilandi!")

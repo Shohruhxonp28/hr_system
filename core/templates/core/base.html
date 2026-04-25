@@ -442,13 +442,15 @@
     </div>
 
     <nav class="sidebar-nav">
+        {% if user.is_staff or user.is_superuser %}
+        <!-- HR/ADMIN PANEL -->
         <div class="nav-section-title">Asosiy</div>
         <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <i class="bi bi-grid-1x2"></i> Boshqaruv paneli
         </a>
 
         <div class="nav-section-title">Tashkilot</div>
-        <a href="{% url 'employee_list' %}" class="{% if 'employee' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'employee_list' %}" class="{% if 'employee' in request.resolver_match.url_name and 'panel' not in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-person-badge"></i> Xodimlar
         </a>
         <a href="{% url 'department_list' %}" class="{% if 'department' in request.resolver_match.url_name %}active{% endif %}">
@@ -462,15 +464,37 @@
         </a>
 
         <div class="nav-section-title">Hisoblar</div>
-        <a href="{% url 'attendance_list' %}" class="{% if 'attendance' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'attendance_list' %}" class="{% if 'attendance' in request.resolver_match.url_name and 'panel' not in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-check2-square"></i> Davomat
         </a>
-        <a href="{% url 'payroll_list' %}" class="{% if 'payroll' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'payroll_list' %}" class="{% if 'payroll' in request.resolver_match.url_name and 'panel' not in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-cash-stack"></i> Ish haqi
         </a>
         <a href="{% url 'reports' %}" class="{% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
             <i class="bi bi-bar-chart-line"></i> Hisobotlar
         </a>
+        {% else %}
+        <!-- EMPLOYEE PANEL -->
+        <div class="nav-section-title">Xodim paneli</div>
+        <a href="{% url 'employee_dashboard' %}" class="{% if request.resolver_match.url_name == 'employee_dashboard' %}active{% endif %}">
+            <i class="bi bi-house-door"></i> Bosh sahifa
+        </a>
+        <a href="{% url 'face_id_scan' %}" class="{% if request.resolver_match.url_name == 'face_id_scan' %}active{% endif %}">
+            <i class="bi bi-camera-video"></i> Face ID Davomat
+        </a>
+        <a href="{% url 'employee_attendance' %}" class="{% if request.resolver_match.url_name == 'employee_attendance' %}active{% endif %}">
+            <i class="bi bi-list-check"></i> Mening davomatim
+        </a>
+        <a href="{% url 'employee_calendar' %}" class="{% if request.resolver_match.url_name == 'employee_calendar' %}active{% endif %}">
+            <i class="bi bi-calendar3"></i> Oylik taqvim
+        </a>
+        <a href="{% url 'employee_salary' %}" class="{% if request.resolver_match.url_name == 'employee_salary' %}active{% endif %}">
+            <i class="bi bi-wallet2"></i> Mening ish haqim
+        </a>
+        <a href="{% url 'employee_profile' %}" class="{% if request.resolver_match.url_name == 'employee_profile' %}active{% endif %}">
+            <i class="bi bi-person"></i> Profil
+        </a>
+        {% endif %}
     </nav>
 
     <div class="sidebar-footer">
@@ -478,7 +502,7 @@
             <div class="avatar">{{ user.username|first|upper }}</div>
             <div>
                 <div class="user-name">{{ user.get_full_name|default:user.username }}</div>
-                <div class="user-role">Administrator</div>
+                <div class="user-role">{% if user.is_staff %}Administrator{% else %}Xodim{% endif %}</div>
             </div>
         </div>
         <a href="{% url 'logout' %}" class="btn btn-sm w-100" style="background:#1E293B;color:#94A3B8;font-size:12px;">
@@ -499,6 +523,9 @@
                 <i class="bi bi-calendar3 me-1"></i>
                 <span id="current-date"></span>
             </span>
+            <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-danger rounded-pill px-3" style="font-size: 13px;">
+                <i class="bi bi-box-arrow-right me-1"></i> Chiqish
+            </a>
         </div>
     </div>
 

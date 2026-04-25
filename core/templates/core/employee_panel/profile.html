@@ -1,0 +1,402 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Mening profilim{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-photo-wrapper {
+        position: relative;
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 16px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #3b82f6;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25);
+        cursor: pointer;
+    }
+    .profile-photo-wrapper img,
+    .profile-photo-wrapper .avatar-placeholder {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: filter 0.3s ease;
+    }
+    .avatar-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #2563EB;
+        color: white;
+        font-size: 64px;
+        font-weight: bold;
+    }
+    .profile-photo-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.55);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        color: white;
+        cursor: pointer;
+    }
+    .profile-photo-wrapper:hover .profile-photo-overlay {
+        opacity: 1;
+    }
+    .profile-photo-wrapper:hover img,
+    .profile-photo-wrapper:hover .avatar-placeholder {
+        filter: blur(2px);
+    }
+    .profile-photo-overlay i {
+        font-size: 32px;
+        margin-bottom: 6px;
+    }
+    .profile-photo-overlay span {
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    /* Photo modal */
+    .photo-modal-backdrop {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 9998;
+        display: none;
+    }
+    .photo-modal {
+        position: fixed;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 20px;
+        padding: 32px;
+        z-index: 9999;
+        display: none;
+        width: 420px;
+        max-width: 95vw;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .photo-modal.active,
+    .photo-modal-backdrop.active {
+        display: block;
+    }
+
+    /* Camera face guide */
+    .camera-container {
+        position: relative;
+        width: 280px;
+        height: 280px;
+        margin: 0 auto;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #3b82f6;
+    }
+    .camera-container video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transform: scaleX(-1);
+    }
+    .face-guide {
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 160px;
+        height: 210px;
+        border: 3px dashed rgba(59, 130, 246, 0.7);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 5;
+        box-shadow: 0 0 0 1000px rgba(0,0,0,0.15);
+    }
+    .face-guide-text {
+        position: absolute;
+        bottom: 12px;
+        left: 0; right: 0;
+        text-align: center;
+        color: white;
+        font-size: 11px;
+        font-weight: 500;
+        z-index: 6;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card text-center h-100">
+            <div class="card-body py-5">
+                <!-- PROFIL RASMI — hover qilganda o'zgartirish -->
+                <div class="profile-photo-wrapper" id="photo-trigger">
+                    {% if employee.photo %}
+                        <img src="{{ employee.photo.url }}" alt="Profil rasmi">
+                    {% else %}
+                        <div class="avatar-placeholder">
+                            {{ employee.first_name|first }}{{ employee.last_name|first }}
+                        </div>
+                    {% endif %}
+                    <div class="profile-photo-overlay">
+                        <i class="bi bi-camera-fill"></i>
+                        <span>Rasmni o'zgartirish</span>
+                    </div>
+                </div>
+
+                <h4 class="fw-bold mb-1">{{ employee.full_name }}</h4>
+                <p class="text-muted">{{ employee.position.name }}</p>
+                
+                <span class="badge bg-success rounded-pill px-3 py-2 mt-2">
+                    <i class="bi bi-person-check me-1"></i> {{ employee.get_status_display }}
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header"><i class="bi bi-info-circle me-2 text-primary"></i>Shaxsiy ma'lumotlar</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label class="text-muted small">Xodim ID</label>
+                        <div class="fw-bold">{{ employee.employee_id }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="text-muted small">Bo'lim</label>
+                        <div class="fw-bold">{{ employee.department.name|default:"-" }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="text-muted small">Telefon raqam</label>
+                        <div class="fw-bold">{{ employee.phone|default:"Kiritilmagan" }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="text-muted small">Email</label>
+                        <div class="fw-bold">{{ employee.email|default:"Kiritilmagan" }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="text-muted small">Ish jadvali</label>
+                        <div class="fw-bold">{{ employee.work_schedule.name|default:"Biriktirilmagan" }}</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="text-muted small">Ishga kirgan sana</label>
+                        <div class="fw-bold">{{ employee.hire_date|date:"d M, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="bi bi-shield-lock me-2 text-danger"></i>Parolni o'zgartirish</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Yangi parol</label>
+                        <input type="password" name="new_password" class="form-control" required minlength="6">
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Saqlash</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- RASM MODAL -->
+<div class="photo-modal-backdrop" id="photo-backdrop"></div>
+<div class="photo-modal" id="photo-modal">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold mb-0"><i class="bi bi-camera me-2 text-primary"></i>Profil rasmini o'zgartirish</h5>
+        <button class="btn btn-sm btn-light rounded-circle" id="modal-close" style="width:32px;height:32px;">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <!-- TAB TANLASH -->
+    <ul class="nav nav-pills nav-fill mb-4" role="tablist">
+        <li class="nav-item">
+            <button class="nav-link active" id="tab-upload" data-tab="upload">
+                <i class="bi bi-upload me-1"></i> Fayldan yuklash
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" id="tab-camera" data-tab="camera">
+                <i class="bi bi-camera-video me-1"></i> Rasmga tushish
+            </button>
+        </li>
+    </ul>
+
+    <!-- FAYLDAN YUKLASH -->
+    <div id="panel-upload">
+        <form method="post" enctype="multipart/form-data" action="{% url 'employee_upload_photo' %}">
+            {% csrf_token %}
+            <div class="text-center p-4 border-2 border-dashed rounded-4 mb-3" 
+                 style="border: 2px dashed #CBD5E1; background: #F8FAFC; cursor: pointer;"
+                 id="drop-zone">
+                <i class="bi bi-cloud-arrow-up text-primary" style="font-size: 40px;"></i>
+                <p class="mt-2 mb-1 fw-medium">Rasm faylni tanlang</p>
+                <p class="text-muted small mb-0">JPG, PNG — 5 MB gacha</p>
+                <input type="file" name="photo" id="file-input" class="d-none" accept="image/*">
+            </div>
+            <div id="file-preview" class="text-center mb-3 d-none">
+                <img id="file-preview-img" class="rounded-circle border border-3 border-primary" 
+                     style="width: 120px; height: 120px; object-fit: cover;">
+                <p class="mt-2 mb-0 small text-success"><i class="bi bi-check-circle"></i> Rasm tanlandi</p>
+            </div>
+            <button type="submit" class="btn btn-primary w-100" id="btn-upload" disabled>
+                <i class="bi bi-check2 me-1"></i> Rasmni saqlash
+            </button>
+        </form>
+    </div>
+
+    <!-- KAMERADAN OLISH -->
+    <div id="panel-camera" class="d-none">
+        <div class="text-center">
+            <div class="camera-container mb-3" id="cam-wrapper">
+                <video id="cam-video" autoplay playsinline></video>
+                <div class="face-guide"></div>
+                <div class="face-guide-text">Yuzingizni ramkaga joylashtiring</div>
+                <canvas id="cam-canvas" class="d-none"></canvas>
+            </div>
+
+            <div class="alert alert-info py-2 small mb-3">
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Talab:</strong> Yuzingizni to'g'ri tutib, yaxshi yorug'likda rasmga tushing. Ko'zoynakni olib tashlang.
+            </div>
+
+            <div id="cam-status" class="mb-3 small"></div>
+
+            <div class="d-grid gap-2">
+                <button id="btn-start-cam" class="btn btn-outline-primary">
+                    <i class="bi bi-camera-video me-1"></i> Kamerani yoqish
+                </button>
+                <button id="btn-capture" class="btn btn-success d-none">
+                    <i class="bi bi-camera me-1"></i> Rasmga tushish va saqlash
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const photoTrigger = document.getElementById('photo-trigger');
+    const modal = document.getElementById('photo-modal');
+    const backdrop = document.getElementById('photo-backdrop');
+    const modalClose = document.getElementById('modal-close');
+    const tabUpload = document.getElementById('tab-upload');
+    const tabCamera = document.getElementById('tab-camera');
+    const panelUpload = document.getElementById('panel-upload');
+    const panelCamera = document.getElementById('panel-camera');
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const filePreview = document.getElementById('file-preview');
+    const filePreviewImg = document.getElementById('file-preview-img');
+    const btnUpload = document.getElementById('btn-upload');
+    const video = document.getElementById('cam-video');
+    const canvas = document.getElementById('cam-canvas');
+    const btnStartCam = document.getElementById('btn-start-cam');
+    const btnCapture = document.getElementById('btn-capture');
+    const camStatus = document.getElementById('cam-status');
+    let camStream = null;
+
+    // Modal ochish/yopish
+    photoTrigger.addEventListener('click', () => {
+        modal.classList.add('active');
+        backdrop.classList.add('active');
+    });
+    function closeModal() {
+        modal.classList.remove('active');
+        backdrop.classList.remove('active');
+        if(camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+    }
+    modalClose.addEventListener('click', closeModal);
+    backdrop.addEventListener('click', closeModal);
+
+    // Tab almashish
+    tabUpload.addEventListener('click', () => {
+        tabUpload.classList.add('active');
+        tabCamera.classList.remove('active');
+        panelUpload.classList.remove('d-none');
+        panelCamera.classList.add('d-none');
+    });
+    tabCamera.addEventListener('click', () => {
+        tabCamera.classList.add('active');
+        tabUpload.classList.remove('active');
+        panelCamera.classList.remove('d-none');
+        panelUpload.classList.add('d-none');
+    });
+
+    // Fayl tanlash
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', function() {
+        if(this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                filePreviewImg.src = e.target.result;
+                filePreview.classList.remove('d-none');
+                dropZone.classList.add('d-none');
+                btnUpload.disabled = false;
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+
+    // Kamera
+    btnStartCam.addEventListener('click', () => {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
+            .then(s => {
+                camStream = s;
+                video.srcObject = s;
+                btnStartCam.classList.add('d-none');
+                btnCapture.classList.remove('d-none');
+                camStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Kamera tayyor. Yuzingizni ramkaga joylashtiring.</span>';
+            })
+            .catch(() => {
+                camStatus.innerHTML = '<span class="text-danger"><i class="bi bi-exclamation-triangle"></i> Kamera topilmadi yoki ruxsat berilmadi.</span>';
+            });
+    });
+
+    btnCapture.addEventListener('click', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = canvas.toDataURL('image/jpeg', 0.9);
+
+        btnCapture.disabled = true;
+        btnCapture.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Tekshirilmoqda...';
+        camStatus.innerHTML = '';
+
+        fetch('{% url "employee_capture_photo" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ image: imageData })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if(data.success) {
+                camStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> ' + data.message + '</span>';
+                if(camStream) camStream.getTracks().forEach(t => t.stop());
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                camStatus.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> ' + data.message + '</span>';
+                btnCapture.disabled = false;
+                btnCapture.innerHTML = '<i class="bi bi-camera me-1"></i> Qaytadan rasmga tushish';
+            }
+        })
+        .catch(() => {
+            camStatus.innerHTML = '<span class="text-danger">Tarmoq xatosi</span>';
+            btnCapture.disabled = false;
+            btnCapture.innerHTML = '<i class="bi bi-camera me-1"></i> Qaytadan';
+        });
+    });
+});
+</script>
+{% endblock %}

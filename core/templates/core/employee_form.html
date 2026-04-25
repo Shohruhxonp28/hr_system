@@ -8,7 +8,7 @@
     </a>
 </div>
 
-<form method="post">
+<form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="row g-3">
         <!-- Personal Info -->
@@ -102,6 +102,21 @@
                         <label class="form-label">Soatlik stavka (so'm)</label>
                         {{ form.hourly_rate }}
                         <div class="text-muted mt-1" style="font-size:11px;">Bo'sh qoldirilsa, oylik maoshdan hisoblanadi</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header"><i class="bi bi-person-bounding-box me-2"></i>Tizim va Face ID</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tizimga kirish uchun foydalanuvchi</label>
+                        {{ form.user }}
+                        <div class="text-muted mt-1" style="font-size:11px;">Agar xodim tizimga kirishi kerak bo'lsa, foydalanuvchini tanlang</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Face ID uchun rasm</label>
+                        {{ form.photo }}
                     </div>
                 </div>
             </div>

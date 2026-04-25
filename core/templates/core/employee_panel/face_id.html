@@ -1,0 +1,121 @@
+{% extends 'core/base.html' %}
+
+{% block page_title %}Face ID Davomat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-0 text-center pt-4 pb-0">
+                <h4 class="mb-0 fw-bold">Face ID Skanerlash</h4>
+                <p class="text-muted small">Kameraga qarang va yuzingizni markazga joylashtiring.</p>
+            </div>
+            <div class="card-body p-4 text-center">
+                <div class="position-relative mx-auto mb-4" style="width: 320px; height: 320px; border-radius: 50%; overflow: hidden; border: 4px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);">
+                    <video id="camera" width="100%" height="100%" style="object-fit: cover; transform: scaleX(-1);" autoplay playsinline></video>
+                    <canvas id="canvas" class="d-none"></canvas>
+                    
+                    <!-- Scanning overlay animation -->
+                    <div id="scan-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-none" style="background: rgba(59, 130, 246, 0.2); z-index: 10;">
+                        <div class="w-100 bg-primary opacity-75" style="height: 4px; box-shadow: 0 0 10px #3b82f6; animation: scan 2s infinite linear;"></div>
+                    </div>
+                </div>
+
+                <div id="status-message" class="alert alert-info d-none mb-4"></div>
+
+                <button id="capture-btn" class="btn btn-primary btn-lg rounded-pill px-5 py-2 shadow-sm">
+                    <i class="bi bi-camera me-2"></i> {% if not attendance.check_in %}Kirish{% else %}Chiqish{% endif %} ni belgilash
+                </button>
+                
+                <div class="mt-3">
+                    <a href="{% url 'employee_dashboard' %}" class="text-decoration-none text-muted">Ortga qaytish</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes scan {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(320px); }
+    100% { transform: translateY(0); }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+    const statusMsg = document.getElementById('status-message');
+    const scanOverlay = document.getElementById('scan-overlay');
+    
+    // Request camera access
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            statusMsg.className = 'alert alert-danger';
+            statusMsg.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i> Kamera topilmadi yoki ruxsat yo\'q.';
+            statusMsg.classList.remove('d-none');
+            captureBtn.disabled = true;
+        });
+
+    captureBtn.addEventListener('click', function() {
+        // Show scanning animation
+        scanOverlay.classList.remove('d-none');
+        captureBtn.disabled = true;
+        captureBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Tekshirilmoqda...';
+        statusMsg.classList.add('d-none');
+
+        // Draw video frame to canvas
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Get base64 image
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+
+        // Send to backend
+        fetch('{% url "api_face_check" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ image: imageData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            scanOverlay.classList.add('d-none');
+            statusMsg.classList.remove('d-none');
+            
+            if(data.success) {
+                statusMsg.className = 'alert alert-success';
+                statusMsg.innerHTML = '<i class="bi bi-check-circle me-2"></i> ' + data.message;
+                setTimeout(() => {
+                    window.location.href = '{% url "employee_dashboard" %}';
+                }, 1500);
+            } else {
+                statusMsg.className = 'alert alert-danger';
+                statusMsg.innerHTML = '<i class="bi bi-x-circle me-2"></i> ' + data.message;
+                captureBtn.disabled = false;
+                captureBtn.innerHTML = '<i class="bi bi-camera me-2"></i> Qaytadan urinib ko\'ring';
+            }
+        })
+        .catch(err => {
+            scanOverlay.classList.add('d-none');
+            statusMsg.className = 'alert alert-danger';
+            statusMsg.innerHTML = '<i class="bi bi-exclamation-triangle me-2"></i> Tarmoq xatosi yuz berdi.';
+            statusMsg.classList.remove('d-none');
+            captureBtn.disabled = false;
+            captureBtn.innerHTML = '<i class="bi bi-camera me-2"></i> Qaytadan urinish';
+        });
+    });
+});
+</script>
+{% endblock %}

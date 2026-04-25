@@ -64,6 +64,7 @@ class EmployeeForm(forms.ModelForm):
         model = Employee
         fields = [
             'first_name', 'last_name', 'middle_name', 'employee_id',
+            'user', 'photo',
             'department', 'position', 'work_schedule',
             'phone', 'email', 'gender', 'hire_date', 'birth_date',
             'salary', 'hourly_rate', 'status', 'address', 'notes'
@@ -86,6 +87,8 @@ class EmployeeForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-select'}),
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'user': forms.Select(attrs={'class': 'form-select'}),
+            'photo': forms.FileInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'first_name': 'Ism', 'last_name': 'Familiya', 'middle_name': "Otasining ismi",
@@ -93,7 +96,8 @@ class EmployeeForm(forms.ModelForm):
             'work_schedule': 'Ish jadvali', 'phone': 'Telefon', 'email': 'Email',
             'gender': 'Jinsi', 'hire_date': 'Ishga qabul sanasi', 'birth_date': "Tug'ilgan sana",
             'salary': 'Maosh (so\'m)', 'hourly_rate': 'Soatlik stavka',
-            'status': 'Holat', 'address': 'Manzil', 'notes': 'Izoh'
+            'status': 'Holat', 'address': 'Manzil', 'notes': 'Izoh',
+            'user': 'Foydalanuvchi (Tizimga kirish uchun)', 'photo': 'Rasm (Face ID uchun)'
         }
 
 

@@ -1,0 +1,117 @@
+{% extends 'core/base.html' %}
+{% load hrms_tags %}
+{% block page_title %}Oylik taqvim{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get">
+                    <div class="mb-3">
+                        <label class="form-label">Yil</label>
+                        <input type="number" name="year" class="form-control" value="{{ year }}" min="2000" max="2100">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Oy</label>
+                        <select name="month" class="form-select">
+                            {% for m_num, m_name in months.items %}
+                            <option value="{{ m_num }}" {% if m_num == month %}selected{% endif %}>{{ m_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-calendar-check"></i> Ko'rsatish</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">Holat belgilari</h6>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-circle bg-success me-2" style="width: 12px; height: 12px;"></div>
+                    <small>Vaqtida keldi</small>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-circle bg-warning me-2" style="width: 12px; height: 12px;"></div>
+                    <small>Kechikdi</small>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-circle bg-danger me-2" style="width: 12px; height: 12px;"></div>
+                    <small>Kelmadi</small>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-circle bg-secondary me-2" style="width: 12px; height: 12px;"></div>
+                    <small>Dam olish kuni / Bayram</small>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <div class="rounded-circle bg-primary me-2" style="width: 12px; height: 12px;"></div>
+                    <small>Qo'shimcha ish</small>
+                </div>
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-info me-2" style="width: 12px; height: 12px;"></div>
+                    <small>To'liq emas</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="card">
+            <div class="card-header text-center fs-5 fw-bold">
+                {% for m_num, m_name in months.items %}{% if m_num == month %}{{ m_name }}{% endif %}{% endfor %} {{ year }}
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-bordered mb-0 text-center" style="table-layout: fixed;">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Du</th>
+                            <th>Se</th>
+                            <th>Ch</th>
+                            <th>Pa</th>
+                            <th>Ju</th>
+                            <th>Sha</th>
+                            <th>Yak</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for week in cal %}
+                        <tr>
+                            {% for day in week %}
+                                {% if day == 0 %}
+                                    <td class="bg-light text-muted"></td>
+                                {% else %}
+                                    {% with att=att_dict|get_item:day %}
+                                    <td class="position-relative" style="height: 80px; vertical-align: top;">
+                                        <div class="fw-bold mb-1">{{ day }}</div>
+                                        {% if att %}
+                                            {% if att.status == 'present' %}
+                                                <div class="badge bg-success w-100">Keldi</div>
+                                            {% elif att.status == 'late' %}
+                                                <div class="badge bg-warning w-100">Kechikdi</div>
+                                            {% elif att.status == 'absent' %}
+                                                <div class="badge bg-danger w-100">Kelmadi</div>
+                                            {% elif att.status == 'day_off' or att.status == 'holiday' %}
+                                                <div class="badge bg-secondary w-100">Dam olish</div>
+                                            {% elif att.status == 'overtime' %}
+                                                <div class="badge bg-primary w-100">Qo'sh. ish</div>
+                                            {% elif att.status == 'incomplete' %}
+                                                <div class="badge bg-info w-100">To'liq emas</div>
+                                            {% endif %}
+                                            <div class="small text-muted mt-1" style="font-size: 10px;">
+                                                {{ att.check_in|time:"H:i"|default:"-" }} - {{ att.check_out|time:"H:i"|default:"-" }}
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    {% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
